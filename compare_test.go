@@ -7,13 +7,13 @@ import (
 
 func TestCalculateCostPerMythic(t *testing.T) {
 	metric := calculateBaseGoldCostPerMythic(1, 1000)
-	assert.Equal(t, float32(1000), metric)
+	assert.Equal(t, float64(1000), metric)
 
 	metric = calculateBaseGoldCostPerMythic(2, 1000)
-	assert.Equal(t, float32(500), metric)
+	assert.Equal(t, float64(500), metric)
 
 	metric = calculateBaseGoldCostPerMythic(2, 200000000)
-	assert.Equal(t, float32(100000000), metric)
+	assert.Equal(t, float64(100000000), metric)
 }
 
 func TestPerformAscendedFuseEarlyReturnLessThanThree(t *testing.T) {
@@ -407,20 +407,20 @@ func TestSetSpendableGold(t *testing.T) {
 	pc.PetPrices = pc.getCheaperEggsPrices()
 	pc.setSpendableGold(100)
 
-	expectedGold := uint64(float32(100) * (1 + 0.03 + 0.17 + 0.2 + 1 + 0.5))
+	expectedGold := uint64(float64(100) * (1 + 0.03 + 0.17 + 0.2 + 1 + 0.5))
 	assert.Equal(t, expectedGold, pc.MoneySpending)
 }
 
 func TestConstructor(t *testing.T) {
 	pc := New(100, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
-	assert.Equal(t, uint64(248), pc.MoneySpending)
+	assert.Equal(t, uint64(247), pc.MoneySpending)
 	assert.Equal(t, pc.getCheaperEggsPrices(), pc.PetPrices)
 	assert.Equal(t, Legendary, pc.TypeBuying)
-	assert.Equal(t, float32(0.1), pc.EggLuckPercentage)
-	assert.Equal(t, float32(0.11), pc.FuseLuckPercentage)
-	assert.Equal(t, float32(0.15), pc.AchievementGoldBonus)
-	assert.Equal(t, float32(0.13), pc.CaveGoldBonus)
-	assert.Equal(t, float32(0.2), pc.FriendGoldBonus)
+	assert.Equal(t, float64(0.1), pc.EggLuckPercentage)
+	assert.Equal(t, float64(0.11), pc.FuseLuckPercentage)
+	assert.Equal(t, float64(0.15), pc.AchievementGoldBonus)
+	assert.Equal(t, float64(0.13), pc.CaveGoldBonus)
+	assert.Equal(t, float64(0.2), pc.FriendGoldBonus)
 	assert.True(t, pc.HasDoubleCoinBoost)
 	assert.False(t, pc.HasCoinBonusPass)
 
@@ -428,11 +428,11 @@ func TestConstructor(t *testing.T) {
 	assert.Equal(t, uint64(187), pc.MoneySpending)
 	assert.Equal(t, pc.getEvenCheaperEggsPrices(), pc.PetPrices)
 	assert.Equal(t, Prodigious, pc.TypeBuying)
-	assert.Equal(t, float32(0.01), pc.EggLuckPercentage)
-	assert.Equal(t, float32(0.02), pc.FuseLuckPercentage)
-	assert.Equal(t, float32(0.25), pc.AchievementGoldBonus)
-	assert.Equal(t, float32(0.02), pc.CaveGoldBonus)
-	assert.Equal(t, float32(0.1), pc.FriendGoldBonus)
+	assert.Equal(t, float64(0.01), pc.EggLuckPercentage)
+	assert.Equal(t, float64(0.02), pc.FuseLuckPercentage)
+	assert.Equal(t, float64(0.25), pc.AchievementGoldBonus)
+	assert.Equal(t, float64(0.02), pc.CaveGoldBonus)
+	assert.Equal(t, float64(0.1), pc.FriendGoldBonus)
 	assert.False(t, pc.HasDoubleCoinBoost)
 	assert.True(t, pc.HasCoinBonusPass)
 }

@@ -59,12 +59,12 @@ func main() {
 	printComparison(pc1, pc2, pc1TotalPets, pc2TotalPets, baseGold)
 }
 
-func getCostsPerMythic(mythicCount, displayCost, baseGold uint64) (baseCostPerMythic float32, displayedCostPerMythic float32) {
+func getCostsPerMythic(mythicCount, displayCost, baseGold uint64) (baseCostPerMythic float64, displayedCostPerMythic float64) {
 	return calculateBaseGoldCostPerMythic(mythicCount, baseGold), calculateBaseGoldCostPerMythic(mythicCount, displayCost)
 }
 
-func calculateBaseGoldCostPerMythic(mythicCount, moneySpent uint64) float32 {
-	return float32(moneySpent) / float32(mythicCount)
+func calculateBaseGoldCostPerMythic(mythicCount, moneySpent uint64) float64 {
+	return float64(moneySpent) / float64(mythicCount)
 }
 
 func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string]uint64, baseGold uint64) {
@@ -100,16 +100,16 @@ type PurchaseConfiguration struct {
 	MoneySpending        uint64
 	PetPrices            map[string]uint64
 	TypeBuying           string
-	EggLuckPercentage    float32
-	FuseLuckPercentage   float32
-	AchievementGoldBonus float32
-	CaveGoldBonus        float32
-	FriendGoldBonus      float32
+	EggLuckPercentage    float64
+	FuseLuckPercentage   float64
+	AchievementGoldBonus float64
+	CaveGoldBonus        float64
+	FriendGoldBonus      float64
 	HasDoubleCoinBoost   bool
 	HasCoinBonusPass     bool
 }
 
-func New(baseGold uint64, priceTable, typeBuying string, eggLuckPercentage, fuseLuckPercentage, achievementGoldBonus, caveGoldBonus, friendGoldBonus float32, hasDoubleBoost, hasCoinPass bool) PurchaseConfiguration {
+func New(baseGold uint64, priceTable, typeBuying string, eggLuckPercentage, fuseLuckPercentage, achievementGoldBonus, caveGoldBonus, friendGoldBonus float64, hasDoubleBoost, hasCoinPass bool) PurchaseConfiguration {
 	pc := PurchaseConfiguration{
 		TypeBuying:           typeBuying,
 		EggLuckPercentage:    eggLuckPercentage,
@@ -172,7 +172,7 @@ func (pc *PurchaseConfiguration) setSpendableGold(baseGold uint64) {
 	if pc.HasCoinBonusPass {
 		coinMultiplier += 0.5
 	}
-	gold := float32(baseGold) * coinMultiplier
+	gold := float64(baseGold) * coinMultiplier
 
 	pc.MoneySpending = uint64(gold)
 }
@@ -214,7 +214,7 @@ func (pc *PurchaseConfiguration) calculateHatchedPets(eggsHatched uint64) map[st
 		return map[string]uint64{pc.TypeBuying: eggsHatched}
 	}
 
-	upgradedPetsHatched := uint64(float32(eggsHatched) * pc.EggLuckPercentage)
+	upgradedPetsHatched := uint64(float64(eggsHatched) * pc.EggLuckPercentage)
 	basePetsHatched := eggsHatched - upgradedPetsHatched
 	switch pc.TypeBuying {
 	case Rare:
@@ -260,7 +260,7 @@ func (pc *PurchaseConfiguration) performBaseFiveFuse(hatchedPetCounts map[string
 	fuseCount := hatchedPetCounts[petRarity] / 5
 	hatchedPetCounts[petRarity] = hatchedPetCounts[petRarity] % 5
 
-	upgradedCount := uint64(float32(fuseCount) * pc.FuseLuckPercentage)
+	upgradedCount := uint64(float64(fuseCount) * pc.FuseLuckPercentage)
 	standardCount := fuseCount - upgradedCount
 
 	switch petRarity {
@@ -284,7 +284,7 @@ func (pc *PurchaseConfiguration) performProdigiousFuse(hatchedPetCounts map[stri
 	fuseCount := hatchedPetCounts[Prodigious] / 3
 	hatchedPetCounts[Prodigious] = hatchedPetCounts[Prodigious] % 3
 
-	upgradedCount := uint64(float32(fuseCount) * pc.FuseLuckPercentage)
+	upgradedCount := uint64(float64(fuseCount) * pc.FuseLuckPercentage)
 	standardCount := fuseCount - upgradedCount
 
 	hatchedPetCounts[Ascended] += standardCount
