@@ -436,3 +436,8 @@ func TestConstructor(t *testing.T) {
 	assert.False(t, pc.HasDoubleCoinBoost)
 	assert.True(t, pc.HasCoinBonusPass)
 }
+
+func TestSanityCheckGoldConstants(t *testing.T) {
+	assert.True(t, OneHundredMillion < OneBillion)
+	assert.True(t, OneBillion < OneTrillion)
+}
