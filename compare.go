@@ -7,17 +7,31 @@ import (
 	"golang.org/x/text/message"
 )
 
+const Rare = "rare"
+const Epic = "epic"
+const Legendary = "legendary"
+const Prodigious = "prodigious"
+const Ascended = "ascended"
+const Mythical = "mythical"
+const CheaperPriceTable = "cheaper"
+const EvenCheaperPriceTable = "even_cheaper"
+const OneBillion = uint64(1000000000)
+const OneHundredMillion = uint64(100000000)
+const OneTrillion = uint64(1000000000000)
+
 func main() {
+	baseGold := OneTrillion
+
 	pc1 := New(
-		OneBillion,
+		baseGold,
 		EvenCheaperPriceTable,
 		Epic,
 		0.30,  // egg luck
 		0.25,  // fuse luck
-		0.0,   // achievement coin bonus
+		0.20,  // achievement coin bonus
 		0,     // cave coin bonus
-		0.0,   // friend coin bonus
-		false, // has temporary double coin boost
+		0.2,   // friend coin bonus
+		true,  // has temporary double coin boost
 		false, // has permanent 1.5x coin game pass
 	)
 	pc1TotalPets, err := pc1.CalculateTotalPets()
@@ -26,15 +40,15 @@ func main() {
 	}
 
 	pc2 := New(
-		OneBillion,
+		baseGold,
 		EvenCheaperPriceTable,
 		Prodigious,
 		0.25, // egg luck
 		0.06, // fuse luck
-		0.0,  // achievement coin bonus
+		0.20, // achievement coin bonus
 		0,    // cave coin bonus
-		0.0,  // friend coin bonus
-		false,
+		0.2,  // friend coin bonus
+		true,
 		false,
 	)
 	pc2TotalPets, err := pc2.CalculateTotalPets()
@@ -42,33 +56,33 @@ func main() {
 		panic(err)
 	}
 
-	printComparison(pc1, pc2, pc1TotalPets, pc2TotalPets)
+	printComparison(pc1, pc2, pc1TotalPets, pc2TotalPets, baseGold)
 }
 
-func getCostsPerMythic(mythicCount int, displayCost int) (baseCostPerMythic float32, displayedCostPerMythic float32) {
-	return calculateBaseGoldCostPerMythic(mythicCount, OneBillion), calculateBaseGoldCostPerMythic(mythicCount, displayCost)
+func getCostsPerMythic(mythicCount, displayCost, baseGold uint64) (baseCostPerMythic float32, displayedCostPerMythic float32) {
+	return calculateBaseGoldCostPerMythic(mythicCount, baseGold), calculateBaseGoldCostPerMythic(mythicCount, displayCost)
 }
 
-func calculateBaseGoldCostPerMythic(mythicCount, moneySpent int) float32 {
+func calculateBaseGoldCostPerMythic(mythicCount, moneySpent uint64) float32 {
 	return float32(moneySpent) / float32(mythicCount)
 }
 
-func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string]int) {
-	pc1BaseCostPerMythic, pc1DisplayedCostPerMythic := getCostsPerMythic(pc1Pets[Mythical], pc1.MoneySpending)
-	pc2BaseCostPerMythic, pc2DisplayedCostPerMythic := getCostsPerMythic(pc2Pets[Mythical], pc2.MoneySpending)
+func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string]uint64, baseGold uint64) {
+	pc1BaseCostPerMythic, pc1DisplayedCostPerMythic := getCostsPerMythic(pc1Pets[Mythical], pc1.MoneySpending, baseGold)
+	pc2BaseCostPerMythic, pc2DisplayedCostPerMythic := getCostsPerMythic(pc2Pets[Mythical], pc2.MoneySpending, baseGold)
 
 	p := message.NewPrinter(language.English)
-	_, _ = p.Printf("Base gold: %d.\n", OneBillion)
+	_, _ = p.Printf("Base gold: %d.\n", baseGold)
 	_, _ = p.Printf("Setup 1's displayed gold before spending: %d.\n", pc1.MoneySpending)
 	_, _ = p.Printf("Setup 2's displayed gold before spending: %d.\n", pc2.MoneySpending)
 	if pc1BaseCostPerMythic > pc2BaseCostPerMythic {
 		_, _ = p.Printf("Setup 2's cost per mythic is better.\n")
-		_, _ = p.Printf("Base gold setup 2 vs setup 1: %d per mythic vs %d\n", int(pc2BaseCostPerMythic), int(pc1BaseCostPerMythic))
-		_, _ = p.Printf("Displayed gold setup 2 vs setup 1: %d per mythic vs %d\n", int(pc2DisplayedCostPerMythic), int(pc1DisplayedCostPerMythic))
+		_, _ = p.Printf("Base gold setup 2 vs setup 1: %d per mythic vs %d\n", uint64(pc2BaseCostPerMythic), uint64(pc1BaseCostPerMythic))
+		_, _ = p.Printf("Displayed gold setup 2 vs setup 1: %d per mythic vs %d\n", uint64(pc2DisplayedCostPerMythic), uint64(pc1DisplayedCostPerMythic))
 	} else if pc1BaseCostPerMythic < pc2BaseCostPerMythic {
 		_, _ = p.Printf("Setup 1's cost per mythic is better.\n")
-		_, _ = p.Printf("Base gold setup 1 vs setup 2: %d per mythic vs %d\n", int(pc1BaseCostPerMythic), int(pc2BaseCostPerMythic))
-		_, _ = p.Printf("Displayed gold setup 1 vs setup 2: %d per mythic vs %d\n", int(pc1DisplayedCostPerMythic), int(pc2DisplayedCostPerMythic))
+		_, _ = p.Printf("Base gold setup 1 vs setup 2: %d per mythic vs %d\n", uint64(pc1BaseCostPerMythic), uint64(pc2BaseCostPerMythic))
+		_, _ = p.Printf("Displayed gold setup 1 vs setup 2: %d per mythic vs %d\n", uint64(pc1DisplayedCostPerMythic), uint64(pc2DisplayedCostPerMythic))
 	} else {
 		fmt.Println("Both setups produce the same number of mythic pets")
 	}
@@ -82,19 +96,9 @@ func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string
 	fmt.Println(pc2Pets)
 }
 
-const Rare = "rare"
-const Epic = "epic"
-const Legendary = "legendary"
-const Prodigious = "prodigious"
-const Ascended = "ascended"
-const Mythical = "mythical"
-const CheaperPriceTable = "cheaper"
-const EvenCheaperPriceTable = "even_cheaper"
-const OneBillion = 1000000000
-
 type PurchaseConfiguration struct {
-	MoneySpending        int
-	PetPrices            map[string]int
+	MoneySpending        uint64
+	PetPrices            map[string]uint64
 	TypeBuying           string
 	EggLuckPercentage    float32
 	FuseLuckPercentage   float32
@@ -105,7 +109,7 @@ type PurchaseConfiguration struct {
 	HasCoinBonusPass     bool
 }
 
-func New(baseGold int, priceTable, typeBuying string, eggLuckPercentage, fuseLuckPercentage, achievementGoldBonus, caveGoldBonus, friendGoldBonus float32, hasDoubleBoost, hasCoinPass bool) PurchaseConfiguration {
+func New(baseGold uint64, priceTable, typeBuying string, eggLuckPercentage, fuseLuckPercentage, achievementGoldBonus, caveGoldBonus, friendGoldBonus float32, hasDoubleBoost, hasCoinPass bool) PurchaseConfiguration {
 	pc := PurchaseConfiguration{
 		TypeBuying:           typeBuying,
 		EggLuckPercentage:    eggLuckPercentage,
@@ -125,14 +129,14 @@ func New(baseGold int, priceTable, typeBuying string, eggLuckPercentage, fuseLuc
 	return pc
 }
 
-func (pc *PurchaseConfiguration) CalculateTotalPets() (map[string]int, error) {
+func (pc *PurchaseConfiguration) CalculateTotalPets() (map[string]uint64, error) {
 	err := pc.validate()
 	if err != nil {
-		return make(map[string]int, 0), err
+		return make(map[string]uint64, 0), err
 	}
 
 	if pc.MoneySpending == 0 {
-		return make(map[string]int, 0), nil
+		return make(map[string]uint64, 0), nil
 	}
 
 	eggsPurchased := pc.MoneySpending / pc.PetPrices[pc.TypeBuying]
@@ -142,8 +146,8 @@ func (pc *PurchaseConfiguration) CalculateTotalPets() (map[string]int, error) {
 	return finalPetList, nil
 }
 
-func (pc *PurchaseConfiguration) getCheaperEggsPrices() map[string]int {
-	return map[string]int{
+func (pc *PurchaseConfiguration) getCheaperEggsPrices() map[string]uint64 {
+	return map[string]uint64{
 		Rare:       140000,
 		Epic:       650000,
 		Legendary:  3000000,
@@ -151,8 +155,8 @@ func (pc *PurchaseConfiguration) getCheaperEggsPrices() map[string]int {
 	}
 }
 
-func (pc *PurchaseConfiguration) getEvenCheaperEggsPrices() map[string]int {
-	return map[string]int{
+func (pc *PurchaseConfiguration) getEvenCheaperEggsPrices() map[string]uint64 {
+	return map[string]uint64{
 		Rare:       120000,
 		Epic:       550000,
 		Legendary:  2500000,
@@ -160,7 +164,7 @@ func (pc *PurchaseConfiguration) getEvenCheaperEggsPrices() map[string]int {
 	}
 }
 
-func (pc *PurchaseConfiguration) setSpendableGold(baseGold int) {
+func (pc *PurchaseConfiguration) setSpendableGold(baseGold uint64) {
 	coinMultiplier := 1 + pc.CaveGoldBonus + pc.AchievementGoldBonus + pc.FriendGoldBonus
 	if pc.HasDoubleCoinBoost {
 		coinMultiplier += 1
@@ -170,14 +174,10 @@ func (pc *PurchaseConfiguration) setSpendableGold(baseGold int) {
 	}
 	gold := float32(baseGold) * coinMultiplier
 
-	pc.MoneySpending = int(gold)
+	pc.MoneySpending = uint64(gold)
 }
 
 func (pc *PurchaseConfiguration) validate() error {
-	if pc.MoneySpending < 0 {
-		return fmt.Errorf("invalid gold amount")
-	}
-
 	isValidType := pc.TypeBuying == Rare ||
 		pc.TypeBuying == Epic ||
 		pc.TypeBuying == Legendary ||
@@ -209,40 +209,40 @@ func (pc *PurchaseConfiguration) validate() error {
 	return nil
 }
 
-func (pc *PurchaseConfiguration) calculateHatchedPets(eggsHatched int) map[string]int {
+func (pc *PurchaseConfiguration) calculateHatchedPets(eggsHatched uint64) map[string]uint64 {
 	if pc.EggLuckPercentage == 0 {
-		return map[string]int{pc.TypeBuying: eggsHatched}
+		return map[string]uint64{pc.TypeBuying: eggsHatched}
 	}
 
-	upgradedPetsHatched := int(float32(eggsHatched) * pc.EggLuckPercentage)
+	upgradedPetsHatched := uint64(float32(eggsHatched) * pc.EggLuckPercentage)
 	basePetsHatched := eggsHatched - upgradedPetsHatched
 	switch pc.TypeBuying {
 	case Rare:
-		return map[string]int{
+		return map[string]uint64{
 			Rare: basePetsHatched,
 			Epic: upgradedPetsHatched,
 		}
 	case Epic:
-		return map[string]int{
+		return map[string]uint64{
 			Epic:      basePetsHatched,
 			Legendary: upgradedPetsHatched,
 		}
 	case Legendary:
-		return map[string]int{
+		return map[string]uint64{
 			Legendary:  basePetsHatched,
 			Prodigious: upgradedPetsHatched,
 		}
 	case Prodigious:
-		return map[string]int{
+		return map[string]uint64{
 			Prodigious: basePetsHatched,
 			Ascended:   upgradedPetsHatched,
 		}
 	default:
-		return make(map[string]int, 0)
+		return make(map[string]uint64, 0)
 	}
 }
 
-func (pc *PurchaseConfiguration) calculateMaxUpgradedPets(hatchedPetCounts map[string]int) map[string]int {
+func (pc *PurchaseConfiguration) calculateMaxUpgradedPets(hatchedPetCounts map[string]uint64) map[string]uint64 {
 	pc.performBaseFiveFuse(hatchedPetCounts, Rare)
 	pc.performBaseFiveFuse(hatchedPetCounts, Epic)
 	pc.performBaseFiveFuse(hatchedPetCounts, Legendary)
@@ -252,7 +252,7 @@ func (pc *PurchaseConfiguration) calculateMaxUpgradedPets(hatchedPetCounts map[s
 	return hatchedPetCounts
 }
 
-func (pc *PurchaseConfiguration) performBaseFiveFuse(hatchedPetCounts map[string]int, petRarity string) {
+func (pc *PurchaseConfiguration) performBaseFiveFuse(hatchedPetCounts map[string]uint64, petRarity string) {
 	if hatchedPetCounts[petRarity] < 5 {
 		return
 	}
@@ -260,7 +260,7 @@ func (pc *PurchaseConfiguration) performBaseFiveFuse(hatchedPetCounts map[string
 	fuseCount := hatchedPetCounts[petRarity] / 5
 	hatchedPetCounts[petRarity] = hatchedPetCounts[petRarity] % 5
 
-	upgradedCount := int(float32(fuseCount) * pc.FuseLuckPercentage)
+	upgradedCount := uint64(float32(fuseCount) * pc.FuseLuckPercentage)
 	standardCount := fuseCount - upgradedCount
 
 	switch petRarity {
@@ -276,7 +276,7 @@ func (pc *PurchaseConfiguration) performBaseFiveFuse(hatchedPetCounts map[string
 	}
 }
 
-func (pc *PurchaseConfiguration) performProdigiousFuse(hatchedPetCounts map[string]int) {
+func (pc *PurchaseConfiguration) performProdigiousFuse(hatchedPetCounts map[string]uint64) {
 	if hatchedPetCounts[Prodigious] < 3 {
 		return
 	}
@@ -284,14 +284,14 @@ func (pc *PurchaseConfiguration) performProdigiousFuse(hatchedPetCounts map[stri
 	fuseCount := hatchedPetCounts[Prodigious] / 3
 	hatchedPetCounts[Prodigious] = hatchedPetCounts[Prodigious] % 3
 
-	upgradedCount := int(float32(fuseCount) * pc.FuseLuckPercentage)
+	upgradedCount := uint64(float32(fuseCount) * pc.FuseLuckPercentage)
 	standardCount := fuseCount - upgradedCount
 
 	hatchedPetCounts[Ascended] += standardCount
 	hatchedPetCounts[Mythical] += upgradedCount
 }
 
-func (pc *PurchaseConfiguration) performAscendedFuse(hatchedPetCounts map[string]int) {
+func (pc *PurchaseConfiguration) performAscendedFuse(hatchedPetCounts map[string]uint64) {
 	if hatchedPetCounts[Ascended] < 3 {
 		return
 	}
