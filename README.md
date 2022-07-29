@@ -6,14 +6,16 @@ can run in free go sandboxes such as https://go.dev/play/
 To run it in a sandbox, copy the entire contents of the compare.go file and paste it into the input. Once
 all the text is copied, run the program.
 
-To change the two configurations being compared, modify the configuration constructors.
+To change the two configurations being compared, modify the configuration constructors and the baseGold value.
 For example, to decide if max +% fuse luck bonus is better or worse than max +% gold bonuses, compare
 the results of these two configurations replacing the values to align with your character:
+
+`baseGold := OneBillion // Base coins being spent before any coin bonuses are applied`
 
 +25% fuse luck:
 ```
 New(
-    OneBillion,            // Base coins being spent before any coin bonuses are applied
+    baseGold,            
     EvenCheaperPriceTable, // Price of the eggs being bought
     Epic,                  // Type of egg being hatched (assumes all hatches are the same type)
     0.29,                  // egg luck
@@ -29,7 +31,7 @@ New(
 +100% gold:
 ```
 New(
-    OneBillion,
+    baseGold,
     EvenCheaperPriceTable,
     Prodigious,
     0.29, // egg luck
