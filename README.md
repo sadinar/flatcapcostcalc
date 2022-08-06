@@ -15,7 +15,8 @@ the results of these two configurations replacing the values to align with your 
 +25% fuse luck:
 ```
 New(
-    baseGold,            
+    baseGold,
+    0,            
     EvenCheaperPriceTable, // Price of the eggs being bought
     Epic,                  // Type of egg being hatched (assumes all hatches are the same type)
     0.29,                  // egg luck
@@ -32,6 +33,7 @@ New(
 ```
 New(
     baseGold,
+    0,
     EvenCheaperPriceTable,
     Prodigious,
     0.29, // egg luck
@@ -50,6 +52,7 @@ in more mythical pets.
 ## Input Values
 
 - Base gold spent
+- Gold per second
 - Pet price table
 - Pet type being hatched
 - Egg luck
@@ -63,6 +66,9 @@ in more mythical pets.
 **_Base gold spent_**: Amount of money earned **_before_** any +% gold modifiers are applied. This is **_not_** the
 gold amount shown on the display in-game and is not necessary to calculate for input. This value is used for
 comparison because cave gold bonuses apply to this value, not the combined total. Any reasonably large number will do.
+
+**_Gold per second_**: Gold per second as shown in the game. If provided, the output will include how many mythic pets
+per hour you can expect to hatch after spending all the gold collected in one hour.
 
 **_Pet price table_**: Prices of the eggs from Rare through Prodigious.
 

@@ -24,6 +24,7 @@ func main() {
 
 	pc1 := New(
 		baseGold,
+		150000,
 		EvenCheaperPriceTable,
 		Epic,
 		0.30,  // egg luck
@@ -41,6 +42,7 @@ func main() {
 
 	pc2 := New(
 		baseGold,
+		150000,
 		EvenCheaperPriceTable,
 		Prodigious,
 		0.25, // egg luck
@@ -90,10 +92,22 @@ func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string
 	fmt.Println()
 	fmt.Println("setup 1 totals:")
 	fmt.Println(pc1Pets)
+	if pc1.GoldPerSecond > 0 {
+		mythicPetsPerHour, err := pc1.CalculateMythicPetsPerHour()
+		if err == nil {
+			_, _ = p.Printf("At %d gold per second, setup 1 would produce %d mythic pets per hour.\n", pc1.GoldPerSecond, mythicPetsPerHour)
+		}
+	}
 
 	fmt.Println()
 	fmt.Println("setup 2 totals:")
 	fmt.Println(pc2Pets)
+	if pc2.GoldPerSecond > 0 {
+		mythicPetsPerHour, err := pc2.CalculateMythicPetsPerHour()
+		if err == nil {
+			_, _ = p.Printf("At %d gold per second, setup 2 would produce %d mythic pets per hour.\n", pc2.GoldPerSecond, mythicPetsPerHour)
+		}
+	}
 }
 
 type PurchaseConfiguration struct {
@@ -107,9 +121,10 @@ type PurchaseConfiguration struct {
 	FriendGoldBonus      float64
 	HasDoubleCoinBoost   bool
 	HasCoinBonusPass     bool
+	GoldPerSecond        uint64
 }
 
-func New(baseGold uint64, priceTable, typeBuying string, eggLuckPercentage, fuseLuckPercentage, achievementGoldBonus, caveGoldBonus, friendGoldBonus float64, hasDoubleBoost, hasCoinPass bool) PurchaseConfiguration {
+func New(baseGold, goldPerSecond uint64, priceTable, typeBuying string, eggLuckPercentage, fuseLuckPercentage, achievementGoldBonus, caveGoldBonus, friendGoldBonus float64, hasDoubleBoost, hasCoinPass bool) PurchaseConfiguration {
 	pc := PurchaseConfiguration{
 		TypeBuying:           typeBuying,
 		EggLuckPercentage:    eggLuckPercentage,
@@ -119,6 +134,7 @@ func New(baseGold uint64, priceTable, typeBuying string, eggLuckPercentage, fuse
 		FriendGoldBonus:      friendGoldBonus,
 		HasDoubleCoinBoost:   hasDoubleBoost,
 		HasCoinBonusPass:     hasCoinPass,
+		GoldPerSecond:        goldPerSecond,
 	}
 	pc.setSpendableGold(baseGold)
 	if priceTable == EvenCheaperPriceTable {
@@ -300,4 +316,24 @@ func (pc *PurchaseConfiguration) performAscendedFuse(hatchedPetCounts map[string
 	hatchedPetCounts[Ascended] = hatchedPetCounts[Ascended] % 3
 
 	hatchedPetCounts[Mythical] += fuseCount
+}
+
+func (pc *PurchaseConfiguration) CalculateMythicPetsPerHour() (uint64, error) {
+	if pc.GoldPerSecond == 0 {
+		return 0, nil
+	}
+
+	defer pc.resetUserGold(pc.MoneySpending)
+	pc.MoneySpending = pc.GoldPerSecond * 60 * 60
+
+	pets, err := pc.CalculateTotalPets()
+	if err != nil {
+		return 0, err
+	}
+
+	return pets[Mythical], nil
+}
+
+func (pc *PurchaseConfiguration) resetUserGold(userMoneySpending uint64) {
+	pc.MoneySpending = userMoneySpending
 }

@@ -412,7 +412,7 @@ func TestSetSpendableGold(t *testing.T) {
 }
 
 func TestConstructor(t *testing.T) {
-	pc := New(100, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
+	pc := New(100, 0, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
 	assert.Equal(t, uint64(247), pc.MoneySpending)
 	assert.Equal(t, pc.getCheaperEggsPrices(), pc.PetPrices)
 	assert.Equal(t, Legendary, pc.TypeBuying)
@@ -424,7 +424,7 @@ func TestConstructor(t *testing.T) {
 	assert.True(t, pc.HasDoubleCoinBoost)
 	assert.False(t, pc.HasCoinBonusPass)
 
-	pc = New(100, EvenCheaperPriceTable, Prodigious, 0.01, 0.02, 0.25, 0.02, 0.1, false, true)
+	pc = New(100, 0, EvenCheaperPriceTable, Prodigious, 0.01, 0.02, 0.25, 0.02, 0.1, false, true)
 	assert.Equal(t, uint64(187), pc.MoneySpending)
 	assert.Equal(t, pc.getEvenCheaperEggsPrices(), pc.PetPrices)
 	assert.Equal(t, Prodigious, pc.TypeBuying)
@@ -440,4 +440,36 @@ func TestConstructor(t *testing.T) {
 func TestSanityCheckGoldConstants(t *testing.T) {
 	assert.True(t, OneHundredMillion < OneBillion)
 	assert.True(t, OneBillion < OneTrillion)
+}
+
+func TestPetsOverTimeIsZeroWhenNoGoldPerSecondProvided(t *testing.T) {
+	pc := New(100, 0, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
+	petsPerHour, err := pc.CalculateMythicPetsPerHour()
+
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(0), petsPerHour)
+}
+
+func TestPetsOverTimeHandlesSmallNumberGracefully(t *testing.T) {
+	pc := New(100, 100, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
+	petsPerHour, err := pc.CalculateMythicPetsPerHour()
+
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(0), petsPerHour)
+}
+
+func TestPetsOverTimeHandlesRealisticNumberGracefully(t *testing.T) {
+	pc := New(100, 1000000, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
+	petsPerHour, err := pc.CalculateMythicPetsPerHour()
+
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(49), petsPerHour)
+}
+
+func TestPetsOverTimeHandlesLargeNumberGracefully(t *testing.T) {
+	pc := New(100, OneBillion, CheaperPriceTable, Legendary, 0.1, 0.11, 0.15, 0.13, 0.2, true, false)
+	petsPerHour, err := pc.CalculateMythicPetsPerHour()
+
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(50245), petsPerHour)
 }
