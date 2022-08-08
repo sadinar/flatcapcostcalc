@@ -447,7 +447,7 @@ func TestPetsOverTimeIsZeroWhenNoGoldPerSecondProvided(t *testing.T) {
 	petsPerHour, err := pc.CalculateMythicPetsPerHour()
 
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(0), petsPerHour)
+	assert.Equal(t, float32(0), petsPerHour)
 }
 
 func TestPetsOverTimeHandlesSmallNumberGracefully(t *testing.T) {
@@ -455,7 +455,7 @@ func TestPetsOverTimeHandlesSmallNumberGracefully(t *testing.T) {
 	petsPerHour, err := pc.CalculateMythicPetsPerHour()
 
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(0), petsPerHour)
+	assert.Equal(t, float32(0), petsPerHour)
 }
 
 func TestPetsOverTimeHandlesRealisticNumberGracefully(t *testing.T) {
@@ -463,7 +463,7 @@ func TestPetsOverTimeHandlesRealisticNumberGracefully(t *testing.T) {
 	petsPerHour, err := pc.CalculateMythicPetsPerHour()
 
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(49), petsPerHour)
+	assert.Equal(t, float32(49.77), petsPerHour)
 }
 
 func TestPetsOverTimeHandlesLargeNumberGracefully(t *testing.T) {
@@ -471,5 +471,5 @@ func TestPetsOverTimeHandlesLargeNumberGracefully(t *testing.T) {
 	petsPerHour, err := pc.CalculateMythicPetsPerHour()
 
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(50245), petsPerHour)
+	assert.Equal(t, float32(50245.33), petsPerHour)
 }

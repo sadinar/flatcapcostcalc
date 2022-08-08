@@ -24,15 +24,15 @@ func main() {
 
 	pc1 := New(
 		baseGold,
-		150000,
+		28000,
 		EvenCheaperPriceTable,
 		Epic,
-		0.30,  // egg luck
-		0.25,  // fuse luck
-		0.20,  // achievement coin bonus
+		0.27,  // egg luck
+		0.07,  // fuse luck
+		0,     // achievement coin bonus
 		0,     // cave coin bonus
-		0.2,   // friend coin bonus
-		true,  // has temporary double coin boost
+		0,     // friend coin bonus
+		false, // has temporary double coin boost
 		false, // has permanent 1.5x coin game pass
 	)
 	pc1TotalPets, err := pc1.CalculateTotalPets()
@@ -42,15 +42,15 @@ func main() {
 
 	pc2 := New(
 		baseGold,
-		150000,
+		28000,
 		EvenCheaperPriceTable,
 		Prodigious,
-		0.25, // egg luck
-		0.06, // fuse luck
-		0.20, // achievement coin bonus
+		0.27, // egg luck
+		0.07, // fuse luck
+		0,    // achievement coin bonus
 		0,    // cave coin bonus
-		0.2,  // friend coin bonus
-		true,
+		0,    // friend coin bonus
+		false,
 		false,
 	)
 	pc2TotalPets, err := pc2.CalculateTotalPets()
@@ -95,7 +95,7 @@ func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string
 	if pc1.GoldPerSecond > 0 {
 		mythicPetsPerHour, err := pc1.CalculateMythicPetsPerHour()
 		if err == nil {
-			_, _ = p.Printf("At %d gold per second, setup 1 would produce %d mythic pets per hour.\n", pc1.GoldPerSecond, mythicPetsPerHour)
+			_, _ = p.Printf("At %d gold per second, setup 1 would produce %.2f mythic pets per hour.\n", pc1.GoldPerSecond, mythicPetsPerHour)
 		}
 	}
 
@@ -105,7 +105,7 @@ func printComparison(pc1, pc2 PurchaseConfiguration, pc1Pets, pc2Pets map[string
 	if pc2.GoldPerSecond > 0 {
 		mythicPetsPerHour, err := pc2.CalculateMythicPetsPerHour()
 		if err == nil {
-			_, _ = p.Printf("At %d gold per second, setup 2 would produce %d mythic pets per hour.\n", pc2.GoldPerSecond, mythicPetsPerHour)
+			_, _ = p.Printf("At %d gold per second, setup 2 would produce %.2f mythic pets per hour.\n", pc2.GoldPerSecond, mythicPetsPerHour)
 		}
 	}
 }
@@ -318,7 +318,7 @@ func (pc *PurchaseConfiguration) performAscendedFuse(hatchedPetCounts map[string
 	hatchedPetCounts[Mythical] += fuseCount
 }
 
-func (pc *PurchaseConfiguration) CalculateMythicPetsPerHour() (uint64, error) {
+func (pc *PurchaseConfiguration) CalculateMythicPetsPerHour() (float32, error) {
 	if pc.GoldPerSecond == 0 {
 		return 0, nil
 	}
@@ -331,7 +331,11 @@ func (pc *PurchaseConfiguration) CalculateMythicPetsPerHour() (uint64, error) {
 		return 0, err
 	}
 
-	return pets[Mythical], nil
+	count := float32(pets[Mythical])
+	count += float32(pets[Ascended]) * 0.33
+	count += float32(pets[Prodigious]) * 0.11
+	count += float32(pets[Legendary]) * 0.02
+	return count, nil
 }
 
 func (pc *PurchaseConfiguration) resetUserGold(userMoneySpending uint64) {
