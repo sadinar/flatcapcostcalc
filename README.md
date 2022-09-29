@@ -6,86 +6,50 @@ can run in free go sandboxes such as https://go.dev/play/
 To run it in a sandbox, copy the entire contents of the compare.go file and paste it into the input. Once
 all the text is copied, run the program.
 
-To change the two configurations being compared, modify the configuration constructors and the baseGold value.
-For example, to decide if max +% fuse luck bonus is better or worse than max +% gold bonuses, compare
-the results of these two configurations replacing the values to align with your character:
+## Time-restricted Mode
 
-`baseGold := OneBillion // Base coins being spent before any coin bonuses are applied`
+Assumes the user has automatic generation unlocked and is both hatching and generating pets non-stop.
+To get started, use the time-restricted constructor in the calculation package to create a new calculator instance.
+Then, call the Calculate method to see what the setup will produce.
 
-+25% fuse luck:
-```
-New(
-    baseGold,
-    0,            
-    EvenCheaperPriceTable, // Price of the eggs being bought
-    Epic,                  // Type of egg being hatched (assumes all hatches are the same type)
-    0.29,                  // egg luck
-    0.25,                  // fuse luck
-    0.3,                   // achievement coin bonus
-    0,                     // cave coin bonus
-    0.3,                   // friend coin bonus
-    true,                  // 2x coin boost
-    true,                  // 1.5x coin pass
+The input numbers match what is shown in-game and only the metallic chance requires calculation. Multiply the
+achievement bonus shown in-game by the metallic luck value shown in-game, then use the result. Alernately, let the
+application do the math as shown below.
+
+For example:
+```go
+tr1 := calculation.NewTimeRestrictedCalculator(
+24*1,                         // hours spent hatching
+450*2*calculation.OneMillion, // gold per minute
+33,                           // calcify chance
+3.22,                         // generate per second
+0.32,                         // egg luck
+0.25,                         // fuse luck
+1.74,                         // shiny wall luck
+1.09,                         // shiny achievement
+1.022399,                     // experts luck
+0.0001*1.3,                   // metallic chance
+calculation.Epic,             // type generating
+calculation.Epic,             // type manually hatching
 )
+tr1.Calculate()
 ```
 
-+100% gold:
-```
-New(
-    baseGold,
-    0,
-    EvenCheaperPriceTable,
-    Prodigious,
-    0.29, // egg luck
-    0,    // fuse luck
-    0.3,  // achievement coin bonus
-    1,    // cave coin bonus (1 == +100%)
-    0.3,  // friend coin bonus
-    true, // 2x coin boost
-    true, // 1.5x coin boost game pass
-)
-```
+### Input Values
 
-Note that at higher fuse luck values (~8%+), changing the type being bought to a lower tier like `Epic` will result
-in more mythical pets.
+- **_Hours Spent Hatching_**: Whole number greater than 0. Calculation will hatch and generate as many eggs as possible during this many hours
+- _**Gold per minute**_: Whole number greater than 0. Gold per minute as shown in-game. Calculation will subtract the cost of eggs from this to determine how many shiny wall upgrades can be purchased once all hatching is complete
+- **_Calcify Chance_**: Whole number from 0 to 100 exactly as shown in-game in the automation area. Used to determine how many, on average, mythic shards are produced in the given time period
+- _**Generate per second**_: Fractional number from 0.25 to 5.00 in increments of 0.01. Automation station's eggs per second as shown in-game. Will be used to determine how many eggs are generated in the given time period
+- _**Egg Luck**_: Cave egg luck plus achievement egg luck as a fractional number from 0 to 0.35. Used to determine how many eggs, on average, were hatched one tier higher
+- **_Fuse Luck_**: Cave fuse upgrade as a fraction from 0 to 0.25. Used to calculate how many fuses, on average, will upgrade one tier
+- **_Shiny Wall Luck_**: Fractional number from 1.00 to 2.00. Shiny wall luck as shown in-game in the grotto which is used to determine how many, on average, shiny pets are hatched as well as how many additional upgrades can be bought.
+- **_Shiny Achievement_**: Fractional number from 1.00 to 1.10 matching the in-game number shown for the achievement. Used to calculate how many shiny pets are hatched, on average
+- **_Experts Luck_**: Cave achievement as a fractional number greater than or equal to 1.00
+- **_Metallic Chance_**: Fractional number >= 0.00 exactly as shown in-game in the grove. Used to determine the odds of hatching at least one metallic in the given time period
+- **_Type Generating_**: Type of egg produced by the automation station from the list of available types. Epic, Legendary, etc. See constants in pet_hatcher.go
+- **_Type manually Hatching_**: Type of egg being hatched by standing in front of an egg and using it. Picked from the same list of constants as generation type
 
-## Input Values
+## Gold-restricted Mode
 
-- Base gold spent
-- Gold per second
-- Pet price table
-- Pet type being hatched
-- Egg luck
-- Fuse luck
-- Achievement coin bonus
-- Cave coin bonus
-- Friend coin bonus
-- Has double coin boost
-- Has 1.5x coin game pass
-
-**_Base gold spent_**: Amount of money earned **_before_** any +% gold modifiers are applied. This is **_not_** the
-gold amount shown on the display in-game and is not necessary to calculate for input. This value is used for
-comparison because cave gold bonuses apply to this value, not the combined total. Any reasonably large number will do.
-
-**_Gold per second_**: Gold per second as shown in the game. If provided, the output will include how many mythic pets
-per hour you can expect to hatch after spending all the gold collected in one hour.
-
-**_Pet price table_**: Prices of the eggs from Rare through Prodigious.
-
-**_Pet type being hatched_**: Value can be Rare, Epic, Legendary, or Prodigious and assumes all eggs hatched are the
-same type.
-
-**_Egg luck_**: Cave egg luck bonus plus achievement egg luck bonus as a number between 0 and 1.32 in
-increments of 0.01. For example, with +10% achievement egg luck and +5% cave egg luck, it would be 0.15.
-
-_**Fuse luck**_: Cave fuse luck bonus as a number between 0 and 0.25 in increments of 0.01.
-
-**_Achievement coin bonus_**: Coin bonus from achievements as a number between 0 and 0.35 in increments of 0.05.
-
-**_Cave coin bonus_**: Coin bonus from the cave as a number between 0 and 1 in increments of 0.01.
-
-**_Friend coin bonus_**: Coin bonus from playing with friends. Values should be 0, 0.1, 0.2, or 0.3.
-
-**_Has double coin boost_**: True if 2x coin boost is active and false if it is not.
-
-**_Has 1.5x coin game pass_**: True if user purchased the permanent 1.5x coin boost and false otherwise.
+Removed from this simplified version. To use the early game calculator, see the full project at https://github.com/sadinar/capcostcalc
