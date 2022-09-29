@@ -19,18 +19,18 @@ application do the math as shown below.
 For example:
 ```go
 tr1 := calculation.NewTimeRestrictedCalculator(
-24*1,                         // hours spent hatching
-450*2*calculation.OneMillion, // gold per minute
-33,                           // calcify chance
-3.22,                         // generate per second
-0.32,                         // egg luck
-0.25,                         // fuse luck
-1.74,                         // shiny wall luck
-1.09,                         // shiny achievement
-1.022399,                     // experts luck
-0.0001*1.3,                   // metallic chance
-calculation.Epic,             // type generating
-calculation.Epic,             // type manually hatching
+    24*1,                         // hours spent hatching
+    450*2*calculation.OneMillion, // gold per minute
+    33,                           // calcify chance
+    3.22,                         // generate per second
+    0.32,                         // egg luck
+    0.25,                         // fuse luck
+    1.74,                         // shiny wall luck
+    1.09,                         // shiny achievement
+    1.022399,                     // experts luck
+    0.0001*1.3,                   // metallic chance
+    calculation.Epic,             // type generating
+    calculation.Epic,             // type manually hatching
 )
 tr1.Calculate()
 ```

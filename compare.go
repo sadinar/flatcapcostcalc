@@ -24,7 +24,6 @@ const OneTrillion = uint64(1000000000000)
 const ManualHatchSpeed = 1
 
 func main() {
-	//performGoldRestrictedComparison()
 	performTimeRestrictedComparison()
 }
 
