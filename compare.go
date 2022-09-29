@@ -27,6 +27,10 @@ func main() {
 	performTimeRestrictedComparison()
 }
 
+/**
+For instructions, see https://github.com/sadinar/flatcapcostcalc
+*/
+
 func performTimeRestrictedComparison() {
 	trc := NewTimeRestrictedCalculator(
 		24*1,               // hours spent hatching
