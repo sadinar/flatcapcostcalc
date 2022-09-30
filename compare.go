@@ -45,7 +45,11 @@ func performTimeRestrictedComparison() {
 		Legendary,        // type generating
 		Legendary,        // type hatching
 	)
-	trc.Calculate()
+	err := trc.Calculate()
+
+	if err != nil {
+		panic(err)
+	}
 }
 
 type TimeRestricted struct {
