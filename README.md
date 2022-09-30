@@ -13,7 +13,7 @@ To get started, use the time-restricted constructor in the calculation package t
 Then, call the Calculate method to see what the setup will produce.
 
 The input numbers match what is shown in-game and only the metallic chance requires calculation. Multiply the
-achievement bonus shown in-game by the metallic luck value shown in-game, then use the result. Alernately, let the
+achievement bonus shown in-game by the metallic luck value shown in-game, then use the result. Alternately, let the
 application do the math as shown below.
 
 For example:
