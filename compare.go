@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"math/big"
-
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"math"
+	"math/big"
 )
 
 const Rare = "rare"
@@ -33,31 +32,32 @@ For instructions, see https://github.com/sadinar/flatcapcostcalc
 
 func performTimeRestrictedComparison() {
 	trc := NewTimeRestrictedCalculator(
-		24*1,               // hours spent hatching
-		900*2*2*OneMillion, // gold per minute
-		80,                 // calcify chance
-		3.86,               // generate per second
-		0.32,               // egg luck
-		0.25,               // fuse luck
-		2.00,               // shiny wall luck
-		1.09,               // shiny achievement
-		1.0526683,          // experts luck
-		0.00040*1.5,        // metallic percent
-		Prodigious,         // type generating
-		Prodigious,         // type hatching
+		[]uint64{24 * 1}, // hours spent hatching
+		900*OneMillion,   // gold per minute
+		80,               // calcify chance
+		3.86,             // generate per second
+		0.25+0.07,        // egg luck
+		0.25,             // fuse luck
+		2.00,             // shiny wall luck
+		1.09,             // shiny achievement
+		1.0526683,        // experts luck
+		0.00040*1.5,      // metallic percent
+		Legendary,        // type generating
+		Legendary,        // type hatching
 	)
 	trc.Calculate()
 }
 
 type TimeRestricted struct {
-	HoursOfHatching   uint64
-	GoldPerMinute     uint64
-	GeneratePerSecond float64
-	MetallicChance    float64
-	calcifyChance     float64
-	GenerationHatcher PetHatcher
-	ManualHatcher     PetHatcher
-	msgPrinter        MsgPrinter
+	HoursOfGenerating     uint64
+	HoursOfManualHatching uint64
+	GoldPerMinute         uint64
+	GeneratePerSecond     float64
+	MetallicChance        float64
+	calcifyChance         float64
+	GenerationHatcher     PetHatcher
+	ManualHatcher         PetHatcher
+	msgPrinter            MsgPrinter
 }
 
 type MsgPrinter interface {
@@ -70,17 +70,22 @@ func (sop *StdOutPrinter) printMessage(msg string) {
 	fmt.Println(msg)
 }
 
-func NewTimeRestrictedCalculator(hoursOfHatching, goldPerMinute, calcifyChance uint64, generatePerSecond, eggLuckPercentage, fuseLuckPercentage, shinyWallLuck, shinyAchievementLuck, expertsLuck, metallicChance float64, typeGenerating, typeHatching string) TimeRestricted {
+func NewTimeRestrictedCalculator(hoursOfHatching []uint64, goldPerMinute, calcifyChance uint64, generatePerSecond, eggLuckPercentage, fuseLuckPercentage, shinyWallLuck, shinyAchievementLuck, expertsLuck, metallicChance float64, typeGenerating, typeHatching string) TimeRestricted {
 	if shinyWallLuck < 1.00 {
 		shinyWallLuck = 1.00
 	}
+	if len(hoursOfHatching) == 1 {
+		hoursOfHatching = append(hoursOfHatching, hoursOfHatching[0])
+	}
+
 	return TimeRestricted{
-		HoursOfHatching:   hoursOfHatching,
-		GeneratePerSecond: generatePerSecond,
-		MetallicChance:    metallicChance,
-		calcifyChance:     float64(calcifyChance) / 100,
-		GoldPerMinute:     goldPerMinute,
-		msgPrinter:        &StdOutPrinter{},
+		HoursOfGenerating:     hoursOfHatching[0],
+		HoursOfManualHatching: hoursOfHatching[1],
+		GeneratePerSecond:     generatePerSecond,
+		MetallicChance:        metallicChance,
+		calcifyChance:         float64(calcifyChance) / 100,
+		GoldPerMinute:         goldPerMinute,
+		msgPrinter:            &StdOutPrinter{},
 		GenerationHatcher: PetHatcher{
 			TypeBuying:           typeGenerating,
 			PriceTable:           EvenCheaperPriceTable,
@@ -102,8 +107,8 @@ func NewTimeRestrictedCalculator(hoursOfHatching, goldPerMinute, calcifyChance u
 	}
 }
 
-func (ts *TimeRestricted) Calculate() {
-	moneyEarned := ts.GoldPerMinute * 60 * ts.HoursOfHatching
+func (ts *TimeRestricted) Calculate() error {
+	moneyEarned := ts.calculateMoneyEarned()
 	ts.setMoneySpending()
 	if ts.GenerationHatcher.MoneySpending+ts.ManualHatcher.MoneySpending > moneyEarned {
 		p := message.NewPrinter(language.English)
@@ -112,17 +117,17 @@ func (ts *TimeRestricted) Calculate() {
 			moneyEarned,
 			ts.GenerationHatcher.MoneySpending+ts.ManualHatcher.MoneySpending,
 		)
-		panic("not enough money to hatch all those eggs! " + msg)
+		return fmt.Errorf("not enough money to hatch all those eggs! " + msg)
 	}
 
 	generatedPets, err := ts.GenerationHatcher.HatchPets()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	manuallyHatchedPets, err := ts.ManualHatcher.HatchPets()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	crystalCount := uint64(float64(generatedPets[Mythical]) * (ts.calcifyChance + 1.0))
@@ -138,16 +143,16 @@ func (ts *TimeRestricted) Calculate() {
 
 	genSpeedUpgrades, err := ts.getGenerationSpeedUpgradeCount(crystalCount)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	calcifyUpgrades, err := ts.calculateCalcifyUpgradeCount(crystalCount)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	p := message.NewPrinter(language.English)
-	msg := p.Sprintf("\nMetrics for %d hours:\n", ts.HoursOfHatching)
+	msg := p.Sprintf("\nMetrics for %d hours generating and %d hours manually hatching:\n", ts.HoursOfGenerating, ts.HoursOfManualHatching)
 	msg += p.Sprintf("mythic crystals: %d\n", crystalCount)
 	msg += p.Sprintf("pet score gained: %d\n", generatedPets[Mythical]+manuallyHatchedPets[Mythical])
 	msg += p.Sprintf("shiny score gained: %d\n", shinyScore)
@@ -165,6 +170,15 @@ func (ts *TimeRestricted) Calculate() {
 	msg += p.Sprintf("probability of %d+ metallic: %.2f%%\n", multiMetallicCount+1, (1-totalProbability)*100)
 
 	ts.msgPrinter.printMessage(msg)
+	return nil
+}
+
+func (ts *TimeRestricted) calculateMoneyEarned() uint64 {
+	if ts.HoursOfGenerating >= ts.HoursOfManualHatching {
+		return ts.GoldPerMinute * 60 * ts.HoursOfGenerating
+	}
+
+	return ts.GoldPerMinute * 60 * ts.HoursOfManualHatching
 }
 
 func (ts *TimeRestricted) calculateMetallicChance(totalPetCount uint64) float64 {
@@ -176,10 +190,10 @@ func (ts *TimeRestricted) calculateMetallicChance(totalPetCount uint64) float64 
 func (ts *TimeRestricted) setMoneySpending() {
 	prices := ts.GenerationHatcher.getEvenCheaperEggsPrices()
 	ts.GenerationHatcher.MoneySpending = uint64(
-		float64(prices[ts.GenerationHatcher.TypeBuying]) * ts.GeneratePerSecond * 60 * 60 * float64(ts.HoursOfHatching),
+		float64(prices[ts.GenerationHatcher.TypeBuying]) * ts.GeneratePerSecond * 60 * 60 * float64(ts.HoursOfGenerating),
 	)
 	ts.ManualHatcher.MoneySpending = uint64(
-		float64(prices[ts.ManualHatcher.TypeBuying]) * ManualHatchSpeed * 60 * 60 * float64(ts.HoursOfHatching),
+		float64(prices[ts.ManualHatcher.TypeBuying]) * ManualHatchSpeed * 60 * 60 * float64(ts.HoursOfManualHatching),
 	)
 }
 
@@ -210,7 +224,10 @@ func (ts *TimeRestricted) getGenerationSpeedUpgradeCount(crystals uint64) (uint6
 	}
 
 	speed := ts.GeneratePerSecond
-	currentCost := ts.calculateCurrentSpeedUpgradeCost()
+	currentCost, err := ts.calculateCurrentSpeedUpgradeCost()
+	if err != nil {
+		return 0, err
+	}
 
 	upgradeCount := uint64(0)
 	for {
@@ -290,18 +307,18 @@ func (ts *TimeRestricted) getGenerationSpeedCostIncrease(currentSpeed float64) (
 	}
 }
 
-func (ts *TimeRestricted) calculateCurrentSpeedUpgradeCost() uint64 {
+func (ts *TimeRestricted) calculateCurrentSpeedUpgradeCost() (uint64, error) {
 	upgradeCost := uint64(10)
 	currentAdjustedSpeed := uint64(math.Round(ts.GeneratePerSecond * 100))
 	for speed := uint64(26); speed <= currentAdjustedSpeed; speed++ {
 		costIncrease, err := ts.getGenerationSpeedCostIncrease(float64(speed-1) / 100)
 		if err != nil {
-			panic("something blew up in calculateCurrentSpeedUpgradeCost!")
+			return 0, err
 		}
 		upgradeCost += costIncrease
 	}
 
-	return upgradeCost
+	return upgradeCost, nil
 }
 
 func (ts *TimeRestricted) calculateCalcifyUpgradeCount(crystals uint64) (uint64, error) {

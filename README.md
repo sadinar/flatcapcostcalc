@@ -19,11 +19,11 @@ application do the math as shown below.
 For example:
 ```go
 tr1 := calculation.NewTimeRestrictedCalculator(
-    24*1,                         // hours spent hatching
+    []uint64{24*1},               // hours spent generating, hours spend manually hatching (using a single number makes them the same) i.e. []uint64{24, 12} for 24 hrs gen and 12 hrs hatch
     450*2*calculation.OneMillion, // gold per minute
     33,                           // calcify chance
     3.22,                         // generate per second
-    0.32,                         // egg luck
+    0.25+0.07,                    // egg luck
     0.25,                         // fuse luck
     1.74,                         // shiny wall luck
     1.09,                         // shiny achievement
@@ -37,7 +37,7 @@ tr1.Calculate()
 
 ### Input Values
 
-- **_Hours Spent Hatching_**: Whole number greater than 0. Calculation will hatch and generate as many eggs as possible during this many hours
+- **_Hours Spent Hatching_**: List of two whole numbers greater than 0 where the first number is hours spent generating and the second is hours spent manually hatching. If there is only one number in the list, the program will assume the same amount of time is spent on each. Calculation will hatch and generate as many eggs as possible for the specified time periods
 - _**Gold per minute**_: Whole number greater than 0. Gold per minute as shown in-game. Calculation will subtract the cost of eggs from this to determine how many shiny wall upgrades can be purchased once all hatching is complete
 - **_Calcify Chance_**: Whole number from 0 to 100 exactly as shown in-game in the automation area. Used to determine how many, on average, mythic shards are produced in the given time period
 - _**Generate per second**_: Fractional number from 0.25 to 5.00 in increments of 0.01. Automation station's eggs per second as shown in-game. Will be used to determine how many eggs are generated in the given time period
